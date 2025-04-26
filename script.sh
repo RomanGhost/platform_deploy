@@ -17,7 +17,7 @@ SERVER_PLATFORM_DIR="server_platform"
 SERVER_CHAT_DIR="server_chat"
 SERVER_SENDER_DIR="server_sender"
 
-# --- Функция для клонирования и копирования ---
+# --- Функция для клонирования, удаления Dockerfile и копирования ---
 # Параметры: <repo_url> <temp_subdir_name> <src_path1> <dest_dir1> [<src_path2> <dest_dir2> ...]
 clone_and_copy() {
     local repo_url="$1"
@@ -28,9 +28,18 @@ clone_and_copy() {
     local repo_basename=$(basename "$repo_url" .git) # Для логов
 
     echo "Клонирование $repo_basename..."
-    # Клонируем только последний коммит для скорости, если полная история не нужна
+    # Клонируем только последний коммит для скорости
     git clone --quiet --depth 1 "$repo_url" "$temp_path"
     # Если нужна полная история, уберите --depth 1
+
+    # --- ИСПРАВЛЕНИЕ: Рекурсивное удаление Dockerfile ---
+    echo "Поиск и удаление всех Dockerfile в $temp_path..."
+    # Ищем все файлы (-type f) с именем Dockerfile (-name Dockerfile)
+    # рекурсивно внутри $temp_path и удаляем их (-delete).
+    # Опция -print выводит найденные файлы перед удалением (можно убрать, если не нужно).
+    find "$temp_path" -type f -name Dockerfile -print -delete
+    echo "Удаление Dockerfile завершено."
+    # ----------------------------------------------------
 
     while (( "$#" >= 2 )); do
         local src_path="$1"
