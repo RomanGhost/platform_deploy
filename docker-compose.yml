@@ -4,7 +4,7 @@ services:
     image: nginx:latest
     container_name: nginx-gateway
     ports:
-      - '80:80'
+      - 80:80
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -38,10 +38,20 @@ services:
     networks:
       - web-platform-service
       - web-backend-network
+    ports:
+      - 7878:7878
   chat:
     container_name: chat-server
+    environment:
+      - POSTGRES_HOST=database-platform 
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_CHAT_NAME}
+      - POSTGRES_PORT=5432
     build: 
       context: ./server_chat
+    depends_on:
+      - database
     networks:
       - web-platform-service
       - web-backend-network
@@ -56,15 +66,17 @@ services:
   database:
     image: 'postgres:latest'
     container_name: database-platform
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - 'POSTGRES_DB=${DB_NAME}'
       - 'POSTGRES_PASSWORD=${DB_PASSWORD}' # изменить пароль для подключения
       - 'POSTGRES_USER=${DB_USER}' # изменить пользователя
-    # При проксировании можно не открывать порты
-    # ports:
-    #    - '${DB_PORT}:5432' #порт для отладки и подключения
     networks:
       - web-backend-network
+    ports:
+      - 5434:5432
   
   # Контейнеры для кафки
   zookeeper:
@@ -75,7 +87,6 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - kafka-service-network
-
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: kafka-platform
@@ -98,3 +109,6 @@ networks:
     driver: bridge
   web-backend-network:
     driver: bridge
+
+volumes:
+  db-data:

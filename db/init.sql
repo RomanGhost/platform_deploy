@@ -1,0 +1,2 @@
+CREATE DATABASE p2p_chat;
+CREATE DATABASE p2p_stock;
