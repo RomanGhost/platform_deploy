@@ -38,8 +38,6 @@ services:
     networks:
       - web-platform-service
       - web-backend-network
-    ports:
-      - 7878:7878
   chat:
     container_name: chat-server
     environment:
@@ -61,6 +59,8 @@ services:
       context: ./server_sender
     networks:
       - web-backend-network
+    ports:
+      - 7878:7878
 
   # База данных
   database:
